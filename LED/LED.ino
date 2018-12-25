@@ -1,20 +1,28 @@
+int lowIn = A0;
+int midianIn = A1;
+int highIn = A2;
+
 void setup() {
-Serial.begin(9600);
- pinMode(8, OUTPUT); // put your setup code here, to run once:
- }
+  Serial.begin(9600);   //Set the baud rate of the comunication
+  pinMode(lowIn,INPUT);    //Define the pin as input
+  pinMode(midianIn,INPUT);
+  pinMode(highIn,INPUT);
+}
 
 void loop() {
-  // put your main code here, to run repeatedly:
- if(Serial.available()>0)
-   {     
-      char data= Serial.read(); // reading the data received from the bluetooth module
-      switch(data)
-      {
-        case '1': digitalWrite(8, HIGH);break; // when a is pressed on the app on your smart phone
-        case '0': digitalWrite(8, LOW);break; // when d is pressed on the app on your smart phone
-        default : break;
-      }
-      Serial.println(data);
-   }
-   delay(50);
+  //Read the analog value
+  float lowVal = analogRead(lowIn);
+  float midianVal = analogRead(midianIn);
+  float highVal = analogRead(highIn);
+  
+  //Divide by 205 to obtain a range from 0 to 5V
+  float lowVolt = lowVal/205;
+  float midianVolt = midianVal/205;
+  float highVolt = highVal/205;
+  
+  //Use serial.print to send the data in a "text" format
+  //Serial.println(lowVolt);
+  //Serial.println(midianVolt);
+  Serial.println(highVolt);
+  delay(50);//Small delay between each data send 
 }
