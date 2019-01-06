@@ -1,38 +1,37 @@
-int lowIn = A0;
-int midianIn = A1;
-int highIn = A2;
-int level = 0;  // 0 -> Low, 1 -> Median, 2 -> High
-int currentLevel = 0;
-int resetHighPin = 3;
-int resetMedianPin = 2;
-int resetValue = 4;
-int lowLEDPin = 9;
-int medianLEDPin = 10;
-int highLEDPin = 11; 
-
-boolean isChanged = false;
-boolean isRest = false;
+//Variables
+int lowIn = A0, midianIn = A1,highIn = A2; //Analog read pins
+int level = 0, currentLevel = 0;  // 0 -> Low, 1 -> Median, 2 -> High
+int resetHighPin = 3, resetMedianPin = 2, resetValue = 4; //Reset pins
+int lowLEDPin = 9, medianLEDPin = 10, highLEDPin = 11; //Output pins
+boolean isChanged = false,isRest = false; //status mark
 
 void setup() {
-  Serial.begin(9600);   //Set the baud rate of the comunication
-  pinMode(lowIn,INPUT);    //Define the pin as input
+  Serial.begin(9600);   
+  
+  //Set analog input pins
+  pinMode(lowIn,INPUT);    
   pinMode(midianIn,INPUT);
   pinMode(highIn,INPUT);
   
+  //Set reset pins and attach interrupt
   pinMode(resetMedianPin, INPUT_PULLUP);
   pinMode(resetHighPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(resetMedianPin), resetMedian, RISING);
   attachInterrupt(digitalPinToInterrupt(resetHighPin), resetHigh, RISING);
-
+  
+  //Set output pins
   pinMode(lowLEDPin, OUTPUT); 
   pinMode(medianLEDPin, OUTPUT);
   pinMode(highLEDPin, OUTPUT);
   
-  Serial.print(resetValue);  //default notification
+  //Initial output
+  Serial.print(resetValue);
 }
 
 void loop() {
-  delay(1000);//Small delay between each data send 
+  //Small delay between each data send 
+  delay(1000);
+  
   //Read the analog value
   float lowVal = analogRead(lowIn);
   float midianVal = analogRead(midianIn);
@@ -42,6 +41,8 @@ void loop() {
   float lowVolt = lowVal/205;
   float midianVolt = midianVal/205;
   float highVolt = highVal/205;
+
+  //When the sensor feels the megnet, the voltage drops form 5 to around 0.12V
   if(lowVolt < 0.5) {
     currentLevel = 0;
     if(currentLevel != level){
@@ -66,17 +67,19 @@ void loop() {
     }
   }
   
-  
+  //Only send message via bluetooth when value is changed by itself
   if(isChanged && !isRest){
     Serial.print(level);
     isChanged = false;
   }
 
+  //Send message when value is reset
   if(isRest){
     Serial.print(resetValue);
     isRest = false;
   }
 
+  //show the level on level indicate LEDs
   if(level == 0){
     digitalWrite(lowLEDPin, HIGH);
     digitalWrite(medianLEDPin, LOW);
@@ -97,6 +100,7 @@ void loop() {
 
 }
 
+//Reset functions
 void resetMedian(){
   level = 1;
   resetValue = 5;
